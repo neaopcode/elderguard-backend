@@ -10,12 +10,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user_id = $_POST['user_id'];
         $latitude = $_POST['latitude'];
         $longitude = $_POST['longitude'];
-        $timestamp = time();
         
-        $stmt = $conn->prepare("INSERT INTO fall_alerts (user_id_fk, latitude, longitude, timestamp, status) VALUES (?, ?, ?, ?, 'detected')");
+        $stmt = $conn->prepare("INSERT INTO fall_alerts (user_id_fk, latitude, longitude, timestamp, status) VALUES (?, ?, ?, NOW(), 'detected')");
         
         if ($stmt) {
-            $stmt->bind_param("sddi", $user_id, $latitude, $longitude, $timestamp);
+            $stmt->bind_param("sdd", $user_id, $latitude, $longitude);
             
             if ($stmt->execute()) {
                 $response['success'] = true;
