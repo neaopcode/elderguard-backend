@@ -9,10 +9,36 @@ $response = ["success" => false];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
+    // --- 新增：處理 Update Name ---
+    if (isset($_POST['action']) && $_POST['action'] === 'update_name') {
+        if (isset($_POST['user_id']) && isset($_POST['full_name'])) {
+            $userId = $conn->real_escape_string($_POST['user_id']);
+            $fullName = $conn->real_escape_string($_POST['full_name']);
+
+            $sql = "UPDATE users SET full_name = '$fullName' WHERE user_id = '$userId'";
+            
+            if ($conn->query($sql) === TRUE) {
+                $response["success"] = true;
+                $response["message"] = "Name updated successfully";
+            } else {
+                $response["message"] = "DB Error updating name";
+                $response["error"] = $conn->error;
+            }
+        } else {
+            $response["message"] = "Missing user_id or full_name";
+        }
+        echo json_encode($response);
+        $conn->close();
+        exit;
+    }
+    // ----------------------------
+
+    // 處理登入 (Login)
     if (isset($_POST['phone']) && isset($_POST['password'])) {
         $phone = $conn->real_escape_string($_POST['phone']);
         $password = $conn->real_escape_string($_POST['password']);
 
+        // 注意：正式環境建議使用 password_verify() 而不是明文比對
         $sql = "SELECT * FROM users WHERE phone='$phone' AND password='$password' LIMIT 1";
         $result = $conn->query($sql);
 
@@ -31,6 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
+    // 處理註冊 (Registration) - 讀取 JSON Body
     $input = json_decode(file_get_contents('php://input'), true);
 
     if (!$input) {
@@ -120,5 +147,4 @@ $response["message"] = "Unsupported request method";
 $response["error"] = "Unsupported request method";
 echo json_encode($response);
 $conn->close();
-
 ?>
